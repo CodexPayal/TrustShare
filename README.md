@@ -4,36 +4,41 @@ Secure File Sharing System built with FastAPI.
 
 ## Authentication Module
 
-The authentication module provides secure user authentication and role-based access management for the TrustShare platform.
+This module provides secure authentication, authorization, and user management for the TrustShare platform.
 
-## Implemented Features
+## Features Implemented
 
-* User Registration
-* User Login
-* Logout
-* JWT Authentication
-* Role-Based Access Control (RBAC)
-* Password Hashing using bcrypt
+### Authentication APIs
+- User Registration
+- User Login
+- User Logout
+- Forgot Password
+- Reset Password
+- Refresh Token
+- User Profile Access
 
-## Database
+### Security Features
+- JWT Authentication
+- OAuth2 Password Flow
+- Password Hashing with bcrypt
+- Role-Based Access Control (RBAC)
 
-* PostgreSQL Integration
-* Users Table
+### Database
+- PostgreSQL Integration
+- Users Table
 
 ## Tech Stack
 
 ### Backend
-
-* Python
-* FastAPI
-* SQLAlchemy
-* PostgreSQL
+- Python
+- FastAPI
+- SQLAlchemy
+- PostgreSQL
 
 ### Security
-
-* JWT Authentication
-* OAuth2
-* bcrypt Password Hashing
+- JWT
+- OAuth2
+- bcrypt
 
 ## Project Structure
 
@@ -66,6 +71,14 @@ git clone <repository-url>
 python -m venv venv
 ```
 
+### Activate Virtual Environment
+
+#### Windows
+
+```bash
+venv\Scripts\activate
+```
+
 ### Install Dependencies
 
 ```bash
@@ -80,7 +93,9 @@ uvicorn app.main:app --reload
 
 ## Contributors
 
-* Priyanka Swain
-* Reshma Challa
+- Priyanka Swain
+- Reshma Challa
 
-Developed as part of Infosys Springboard Virtual Internship.
+## Internship
+
+Developed as part of the Infosys Springboard Virtual Internship 7.0.
