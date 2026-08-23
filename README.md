@@ -143,6 +143,7 @@ Interactive API documentation is available through FastAPI Swagger UI:
 
 ### Authors
 
-**Priyanka Swain** · **Reshma Challa**
+**Priyanka Swain** 
+**Reshma Challa**
 
 **TrustShare — Secure File Sharing System**
