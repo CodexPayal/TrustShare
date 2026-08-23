@@ -1,177 +1,148 @@
-# 🔐 TrustShare — Authentication Module
+# TrustShare — Authentication Module
 
-**TrustShare** is a secure file-sharing system developed as part of the **Infosys Springboard Virtual Internship 7.0**.
+**TrustShare** is a secure file-sharing system focused on protecting user authentication, authorization, and session access.
 
-This repository contains the backend implementation of the **Authentication Module**, providing secure user authentication, authorization, password recovery, and session management.
+This repository contains the **Authentication Module**, built with **FastAPI**, implementing secure user authentication, token management, OAuth, RBAC, MFA, and session management.
 
-## ✨ Authentication Features
+## ✨ Key Features
 
-* 👤 User Registration
-* 🔑 User Login
-* 🚪 User Logout
-* ♻️ Refresh Token
-* 🔐 JWT Authentication
-* 🛡️ Role-Based Access Control (RBAC)
-* 🔒 Multi-Factor Authentication (MFA)
-* 🌐 Google OAuth / OAuth2
-* 📧 Forgot Password
-* 🔄 Reset Password
-* ⚡ Session Management
-* 🚀 Redis Session Support
-
-## 🗄️ Database
-
-* **Users Table** — Stores user account and authentication information.
-* **Sessions Table** — Manages authenticated user sessions.
-
-## 🛡️ Security
-
-* 🔒 **bcrypt** — Secure password hashing
-* 🔑 **JWT** — Token-based authentication
-* 🌐 **OAuth2** — Secure external authentication
-* ⚡ **Redis** — Session management
-* 🔐 **Secure Reset Tokens** — Password recovery workflow
-* 🛡️ **RBAC** — Role-based authorization
-* 🔐 **MFA** — Additional authentication layer
+* **User Authentication** — Registration, Login & Logout
+* **Password Management** — Forgot Password & Reset Password
+* **JWT Authentication** — Access & Refresh Token management
+* **Google OAuth 2.0** — Secure Google Sign-In
+* **Role-Based Access Control** — Role-based authorization
+* **Multi-Factor Authentication** — Authenticator-based MFA
+* **Session Management** — PostgreSQL + Redis sessions
+* **Password Security** — bcrypt hashing
+* **OAuth2** — Bearer-token based protected APIs
 
 ## 🛠️ Tech Stack
 
-| Technology               | Purpose             |
-| ------------------------ | ------------------- |
-| 🐍 Python                | Backend Development |
-| ⚡ FastAPI                | REST API Framework  |
-| 🗄️ PostgreSQL           | Database            |
-| 🔗 SQLAlchemy            | ORM                 |
-| 🔑 JWT                   | Authentication      |
-| 🔒 bcrypt                | Password Hashing    |
-| 🌐 OAuth2 / Google OAuth | Authentication      |
-| ⚡ Redis                  | Session Management  |
-| 🚀 Uvicorn               | Application Server  |
+| Category           | Technologies                  |
+| ------------------ | ----------------------------- |
+| Backend            | Python, FastAPI               |
+| Database           | PostgreSQL                    |
+| ORM                | SQLAlchemy                    |
+| Authentication     | JWT, OAuth2, Google OAuth 2.0 |
+| Security           | bcrypt, MFA                   |
+| Session Management | Redis                         |
+| Server             | Uvicorn                       |
 
-## 📂 Project Structure
+## 📁 Project Structure
 
-```text id="3t8x8w"
+```text
 backend/
 └── app/
-    ├── main.py
-    │
+    ├── database/
+    │   └── database.py
     ├── models/
-    │   ├── __init__.py
     │   ├── user.py
     │   └── session.py
-    │
     ├── routes/
     │   └── auth.py
-    │
     ├── schemas/
     │   └── user.py
-    │
     ├── security/
     │   ├── jwt.py
-    │   └── reset_token.py
-    │
+    │   ├── oauth2.py
+    │   ├── password.py
+    │   ├── reset_token.py
+    │   └── roles.py
     └── services/
         ├── mfa.py
         ├── redis_client.py
         └── session.py
 ```
 
-## 🚀 Setup
+## 🔐 Authentication APIs
 
-### Clone Repository
+| Method | Endpoint                | Description                     |
+| ------ | ----------------------- | ------------------------------- |
+| `POST` | `/auth/register`        | Register a new user             |
+| `POST` | `/auth/login`           | Authenticate user               |
+| `POST` | `/auth/logout`          | End active session              |
+| `POST` | `/auth/refresh`         | Generate a new access token     |
+| `POST` | `/auth/forgot-password` | Initiate password recovery      |
+| `POST` | `/auth/reset-password`  | Reset user password             |
+| `GET`  | `/auth/profile`         | Access authenticated profile    |
+| `GET`  | `/auth/admin`           | Access admin-protected resource |
+| `GET`  | `/auth/google/login`    | Authenticate with Google        |
+| `POST` | `/auth/mfa/setup`       | Configure MFA                   |
+| `POST` | `/auth/mfa/verify`      | Verify MFA code                 |
+| `POST` | `/auth/mfa/disable`     | Disable MFA                     |
 
-```bash id="j9q7gk"
-git clone https://github.com/CodexPayal/TrustShare.git
+## 🚀 Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
 cd TrustShare/backend
 ```
 
-### Create Virtual Environment
+### 2. Create Virtual Environment
 
-```bash id="z2r2f9"
+```bash
 python -m venv venv
 ```
 
-### Activate Virtual Environment
-
 **Windows:**
 
-```powershell id="8ymg7y"
+```powershell
 .\venv\Scripts\Activate.ps1
 ```
 
-### Install Dependencies
+### 3. Install Dependencies
 
-```bash id="7y8fba"
+```bash
 pip install -r requirements.txt
 ```
 
-### Environment Configuration
+### 4. Configure Environment Variables
 
-Configure the required PostgreSQL, JWT, Google OAuth, and Redis credentials in the `.env` file.
+Create a `.env` file:
 
-> ⚠️ Never commit secrets, passwords, API keys, or `.env` files to the repository.
+```env
+DATABASE_URL=your_postgresql_url
+SECRET_KEY=your_secret_key
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+REDIS_URL=your_redis_url
+```
 
-### Run the Backend
+> Keep `.env` and all credentials private. Never commit secrets to the repository.
 
-```bash id="j2a1d5"
+### 5. Run the Backend
+
+```bash
 uvicorn app.main:app --reload
 ```
 
+The API will be available at:
+
+`http://127.0.0.1:8000`
+
 ## 📚 API Documentation
 
-FastAPI provides interactive API documentation through Swagger UI:
+Interactive API documentation is available through FastAPI Swagger UI:
 
-```text id="6d6s2c"
-http://127.0.0.1:8000/docs
-```
+`http://127.0.0.1:8000/docs`
 
-ReDoc:
+## 🔒 Security Highlights
 
-```text id="v1u2hm"
-http://127.0.0.1:8000/redoc
-```
+* bcrypt-based password hashing
+* JWT access and refresh tokens
+* OAuth2 bearer authentication
+* Google OAuth 2.0 integration
+* Role-based authorization
+* Time-based MFA
+* Redis-backed session validation
+* PostgreSQL-based user and session persistence
 
-## 🔄 Authentication Flow
+---
 
-```text id="6l1h0k"
-Register
-   ↓
-Login
-   ↓
-JWT + Session
-   ↓
-Protected Resources
-   ↓
-Refresh Token
-   ↓
-New Access Token
-   ↓
-Logout
-```
+### Authors
 
-Password recovery:
+**Priyanka Swain** · **Reshma Challa**
 
-```text id="wzv4p9"
-Forgot Password
-      ↓
-Reset Token
-      ↓
-Token Validation
-      ↓
-New Password
-```
-
-## 🎓 Internship Context
-
-**Program:** Infosys Springboard Virtual Internship 7.0
-**Project:** TrustShare — Secure File-Sharing System
-**Module:** Authentication Module
-**Backend:** Python + FastAPI
-
-## 👩‍💻 Author
-
-**Priyank Swain**
-
-**Reshma Challa**
-
-**Infosys Springboard Virtual Internship 7.0 — Project Contributor**
+**TrustShare — Secure File Sharing System**
