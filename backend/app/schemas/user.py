@@ -17,13 +17,30 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+
 class ForgotPassword(BaseModel):
     email: EmailStr
 
+
 class ResetPassword(BaseModel):
-    email: EmailStr
+    token: str
     new_password: str
+
+
+class MFAEnableResponse(BaseModel):
+    message: str
+    secret: str
+    qr_code: str
+
+
+class MFAVerify(BaseModel):
+    code: str
+
+class MFAChallenge(BaseModel):
+    mfa_token: str
+    code: str
