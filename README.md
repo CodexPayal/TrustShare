@@ -2,11 +2,12 @@
 
 **TrustShare** is a secure file-sharing system focused on protecting user authentication, authorization, and session access.
 
-This repository contains the **Authentication Module**, built with **FastAPI**, implementing secure user authentication, token management, OAuth, RBAC, MFA, and session management.
+This repository contains the **Authentication Module**, built with **FastAPI**, implementing secure user authentication, email verification, token management, OAuth, RBAC, MFA, and session management.
 
 ## ✨ Key Features
 
 * **User Authentication** — Registration, Login & Logout
+* **Email Verification** — OTP-based email verification & Resend OTP
 * **Password Management** — Forgot Password & Reset Password
 * **JWT Authentication** — Access & Refresh Token management
 * **Google OAuth 2.0** — Secure Google Sign-In
@@ -26,6 +27,7 @@ This repository contains the **Authentication Module**, built with **FastAPI**, 
 | Authentication     | JWT, OAuth2, Google OAuth 2.0 |
 | Security           | bcrypt, MFA                   |
 | Session Management | Redis                         |
+| Email Verification | OTP                           |
 | Server             | Uvicorn                       |
 
 ## 📁 Project Structure
@@ -49,7 +51,9 @@ backend/
     │   ├── reset_token.py
     │   └── roles.py
     └── services/
+        ├── email.py
         ├── mfa.py
+        ├── otp.py
         ├── redis_client.py
         └── session.py
 ```
@@ -59,6 +63,8 @@ backend/
 | Method | Endpoint                | Description                     |
 | ------ | ----------------------- | ------------------------------- |
 | `POST` | `/auth/register`        | Register a new user             |
+| `POST` | `/auth/verify-email`    | Verify email using OTP          |
+| `POST` | `/auth/resend-otp`      | Resend email verification OTP   |
 | `POST` | `/auth/login`           | Authenticate user               |
 | `POST` | `/auth/logout`          | End active session              |
 | `POST` | `/auth/refresh`         | Generate a new access token     |
@@ -135,6 +141,8 @@ Interactive API documentation is available through FastAPI Swagger UI:
 * OAuth2 bearer authentication
 * Google OAuth 2.0 integration
 * Role-based authorization
+* Email OTP verification
+* Resend OTP functionality
 * Time-based MFA
 * Redis-backed session validation
 * PostgreSQL-based user and session persistence
@@ -143,7 +151,7 @@ Interactive API documentation is available through FastAPI Swagger UI:
 
 ### Authors
 
-**Priyanka Swain** 
+**Priyanka Swain**
 
 **Reshma Challa**
 
