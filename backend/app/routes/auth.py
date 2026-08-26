@@ -3,6 +3,7 @@ import os
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from authlib.integrations.starlette_client import OAuth
 
@@ -35,6 +36,15 @@ from app.security.oauth2 import get_current_user
 from app.security.roles import require_role
 
 from app.services.redis_client import redis_client
+
+from app.services.otp import (
+    generate_otp,
+    store_otp,
+    verify_otp
+)
+
+from app.services.email import send_otp_email
+
 from app.services.session import create_session, delete_session
 
 from app.services.mfa import (
@@ -49,6 +59,15 @@ router = APIRouter(
     prefix="/auth",
     tags=["Authentication"]
 )
+
+
+# =========================================================
+# EMAIL OTP SCHEMA
+# =========================================================
+
+class EmailOTPVerify(BaseModel):
+    email: str
+    otp: str
 
 
 # =========================================================
@@ -87,7 +106,7 @@ def auth_test():
 # =========================================================
 
 @router.post("/register")
-def register_user(
+async def register_user(
     user: UserCreate,
     db: Session = Depends(get_db)
 ):
@@ -100,22 +119,156 @@ def register_user(
             "message": "Email already registered"
         }
 
+    existing_username = db.query(User).filter(
+        User.username == user.username
+    ).first()
+
+    if existing_username:
+        return {
+            "message": "Username already registered"
+        }
+
     hashed_password = hash_password(user.password)
 
     new_user = User(
         username=user.username,
         email=user.email,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        email_verified=False
     )
 
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
+    # Generate OTP
+    otp = generate_otp()
+
+    # Store OTP in Redis for 5 minutes
+    store_otp(
+        user.email,
+        otp
+    )
+
+    # Send OTP to user's email
+    try:
+        await send_otp_email(
+            user.email,
+            otp
+        )
+    except Exception:
+        return {
+            "message": (
+                "User registered, but OTP email could not be sent. "
+                "Please use the resend OTP option."
+            ),
+            "username": new_user.username,
+            "email": new_user.email,
+            "email_verified": False
+        }
+
     return {
-        "message": "User registered successfully",
+        "message": (
+            "User registered successfully. "
+            "OTP sent to your email."
+        ),
         "username": new_user.username,
-        "email": new_user.email
+        "email": new_user.email,
+        "email_verified": False
+    }
+
+
+# =========================================================
+# VERIFY EMAIL OTP
+# =========================================================
+
+@router.post("/verify-email")
+def verify_email(
+    data: EmailOTPVerify,
+    db: Session = Depends(get_db)
+):
+    db_user = db.query(User).filter(
+        User.email == data.email
+    ).first()
+
+    if not db_user:
+        return {
+            "message": "User not found"
+        }
+
+    if db_user.email_verified:
+        return {
+            "message": "Email is already verified",
+            "email_verified": True
+        }
+
+    valid = verify_otp(
+        data.email,
+        data.otp
+    )
+
+    if not valid:
+        return {
+            "message": "Invalid or expired OTP",
+            "email_verified": False
+        }
+
+    db_user.email_verified = True
+
+    db.commit()
+    db.refresh(db_user)
+
+    return {
+        "message": "Email verified successfully",
+        "email": db_user.email,
+        "email_verified": True
+    }
+
+
+# =========================================================
+# RESEND EMAIL OTP
+# =========================================================
+
+@router.post("/resend-otp")
+async def resend_otp(
+    email: str,
+    db: Session = Depends(get_db)
+):
+    db_user = db.query(User).filter(
+        User.email == email
+    ).first()
+
+    if not db_user:
+        return {
+            "message": "User not found"
+        }
+
+    if db_user.email_verified:
+        return {
+            "message": "Email is already verified"
+        }
+
+    # Generate new OTP
+    otp = generate_otp()
+
+    # Replace old OTP in Redis
+    store_otp(
+        email,
+        otp
+    )
+
+    try:
+        await send_otp_email(
+            email,
+            otp
+        )
+    except Exception:
+        return {
+            "message": "Unable to send OTP email"
+        }
+
+    return {
+        "message": "New OTP sent successfully"
     }
 
 
@@ -142,6 +295,7 @@ def login_user(
             "message": "This account uses Google login"
         }
 
+    # Verify password first
     password_match = verify_password(
         form_data.password,
         db_user.hashed_password
@@ -150,6 +304,17 @@ def login_user(
     if not password_match:
         return {
             "message": "Invalid password"
+        }
+
+    # Email verification is required
+    # before normal email/password login.
+    if not db_user.email_verified:
+        return {
+            "message": (
+                "Email verification required. "
+                "Please verify your email using OTP."
+            ),
+            "email_verified": False
         }
 
     # MFA-enabled users need OTP verification.
@@ -338,6 +503,9 @@ async def google_callback(
         if not db_user.google_id:
             db_user.google_id = google_id
 
+        # Google has authenticated the user's email.
+        db_user.email_verified = True
+
         db.commit()
         db.refresh(db_user)
 
@@ -348,14 +516,15 @@ async def google_callback(
             username=name,
             email=email,
             google_id=google_id,
-            hashed_password=None
+            hashed_password=None,
+            email_verified=True
         )
 
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
 
-    # Create our normal TrustShare JWT tokens.
+    # Create TrustShare JWT tokens.
     access_token = create_access_token(
         data={"sub": db_user.email}
     )
@@ -449,6 +618,7 @@ def profile(
         "email": current_user.email,
         "role": current_user.role,
         "is_active": current_user.is_active,
+        "email_verified": current_user.email_verified,
         "mfa_enabled": current_user.mfa_enabled
     }
 

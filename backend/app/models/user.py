@@ -45,6 +45,12 @@ class User(Base):
         default=True
     )
 
+    # Email Verification
+    email_verified = Column(
+        Boolean,
+        default=False
+    )
+
     # MFA
     mfa_enabled = Column(
         Boolean,
